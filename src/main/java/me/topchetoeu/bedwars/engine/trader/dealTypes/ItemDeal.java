@@ -10,6 +10,13 @@ import me.topchetoeu.bedwars.engine.BedwarsPlayer;
 import me.topchetoeu.bedwars.engine.Game;
 import me.topchetoeu.bedwars.engine.WoodenSword;
 import me.topchetoeu.bedwars.engine.trader.Deal;
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.minecraft.EnumChatFormat;
+import net.minecraft.network.chat.ChatBaseComponent;
+import net.minecraft.network.chat.ChatComponentText;
+import net.minecraft.network.chat.IChatBaseComponent;
 
 public class ItemDeal implements Deal {
 	private ItemStack item;
@@ -25,8 +32,11 @@ public class ItemDeal implements Deal {
 	}
 
 	@Override
-	public String getDealName(Player p) {
-		return String.format("§r%dx %s%s", item.getAmount(), Utility.getItemName(item), implemented ? "" : " §4§l(not implemented)§r");
+	public IChatBaseComponent getDealName(Player p) {
+		// BaseComponent.
+		// new ComponentBuilder().color(ChatColor.WHITE).append(Integer.toString(item.getAmount())).append( Utility.getItemName(item));
+		// String.format("§r%dx %s%s", item.getAmount(), Utility.getItemName(item), implemented ? "" : " §4§l(not implemented)§r");
+		return new ChatComponentText("none lol");
 	}
 
 	@Override
