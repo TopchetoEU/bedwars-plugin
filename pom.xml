@@ -12,9 +12,17 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>1.8</maven.compiler.source>
-    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
   </properties>
+
+  <repositories>
+    <repository>
+      <id>minecraft-libraries</id>
+      <name>Minecraft Libraries</name>
+      <url>https://libraries.minecraft.net</url>
+    </repository>
+  </repositories>
 
   <dependencies>
     <dependency>
@@ -43,6 +51,11 @@
       <version>1.0</version> 
       <scope>system</scope>
       <systemPath>${basedir}/deps/datafixerupper.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>com.mojang</groupId>
+      <artifactId>brigadier</artifactId>  
+      <version>1.0.18</version> 
     </dependency>
   </dependencies>
 
@@ -87,5 +100,13 @@
         </plugin>
       </plugins>
     </pluginManagement>
+    <resources>
+        <resource>
+            <directory>src</directory>
+            <includes>
+                <include>**/*.yml</include>
+            </includes>
+        </resource>
+    </resources>
   </build>
 </project>
