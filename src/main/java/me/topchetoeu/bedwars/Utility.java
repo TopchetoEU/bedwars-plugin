@@ -129,28 +129,28 @@ public class Utility {
         return meta.getBlockData() instanceof Bed;
     }
     public static boolean isWool(Block meta) {
-        return meta.getType().getKey().getKey().endsWith("WOOL");
+        return meta.getType().getKey().getKey().endsWith("_wool");
     }
     public static boolean isWool(Material meta) {
-        return meta.getKey().getKey().endsWith("WOOL");
+        return meta.getKey().getKey().endsWith("_wool");
     }
     public static boolean isTool(Material type) {
         return type == Material.SHEARS ||
-            type.getKey().getKey().endsWith("PICKAXE") ||
-            type.getKey().getKey().endsWith("SHOVEL") ||
-            type.getKey().getKey().endsWith("AXE");
+            type.getKey().getKey().endsWith("_pickaxe") ||
+            type.getKey().getKey().endsWith("_shovel") ||
+            type.getKey().getKey().endsWith("_axe");
     }
     public static boolean isArmor(Material type) {
         return
-            type.getKey().getKey().endsWith("HELMET") ||
-            type.getKey().getKey().endsWith("CHESTPLATE") ||
-            type.getKey().getKey().endsWith("LEGGINGS") ||
-            type.getKey().getKey().endsWith("BOOTS");
+            type.getKey().getKey().endsWith("_helmet") ||
+            type.getKey().getKey().endsWith("_chestplate") ||
+            type.getKey().getKey().endsWith("_leggings") ||
+            type.getKey().getKey().endsWith("_boots");
     }
     public static boolean isWeapon(Material type) {
         return
-            type.getKey().getKey().endsWith("SWORD") ||
-            type.getKey().getKey().endsWith("AXE");
+            type.getKey().getKey().endsWith("_sword") ||
+            type.getKey().getKey().endsWith("_axe");
     }
 
 
