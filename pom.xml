@@ -32,31 +32,29 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>bukkit</groupId>
-      <artifactId>bukkit</artifactId>  
+      <groupId>spigot</groupId>
+      <artifactId>api</artifactId>  
       <version>1.0</version> 
       <scope>system</scope>
       <systemPath>${basedir}/deps/bukkit.jar</systemPath>
     </dependency>
     <dependency>
-      <groupId>aaaaaaa</groupId>
-      <artifactId>aaaaaaaaa</artifactId>  
-      <version>1.0</version> 
-      <scope>system</scope>
-      <systemPath>${basedir}/deps/server.jar</systemPath>
-    </dependency>
-    <dependency>
-      <groupId>server</groupId>
+      <groupId>spigot</groupId>
       <artifactId>server</artifactId>  
       <version>1.0</version> 
       <scope>system</scope>
-      <systemPath>${basedir}/deps/datafixerupper.jar</systemPath>
+      <systemPath>${basedir}/deps/server.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>com.mojang</groupId>
       <artifactId>brigadier</artifactId>  
       <version>1.0.18</version> 
     </dependency>
+    <dependency>
+      <groupId>com.mojang</groupId>
+      <artifactId>datafixerupper</artifactId>
+      <version>1.0.20</version>
+  </dependency>
   </dependencies>
 
   <build>
