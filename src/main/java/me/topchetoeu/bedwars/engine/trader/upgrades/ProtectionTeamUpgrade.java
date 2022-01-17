@@ -52,7 +52,7 @@ public class ProtectionTeamUpgrade implements TeamUpgrade {
     @Override
     public void upgradeItem(ItemStack item) {
         if (item == null) return;
-        if (Utility.isTool(item.getType())) {
+        if (Utility.isArmor(item.getType())) {
             item.addEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL, level);
         }
     }

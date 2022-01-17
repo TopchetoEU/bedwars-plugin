@@ -44,6 +44,9 @@ import org.bukkit.util.Vector;
 import me.topchetoeu.bedwars.Main;
 import me.topchetoeu.bedwars.Utility;
 import me.topchetoeu.bedwars.engine.trader.dealTypes.RankedDealType;
+import me.topchetoeu.bedwars.messaging.MessageUtility;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class Game implements Listener, AutoCloseable {
     public static Game instance = null;
@@ -101,8 +104,16 @@ public class Game implements Listener, AutoCloseable {
     }
     
     public void win(TeamColor color) {
-        getTeam(color).sendTitle("You won!", "", 0, 20 * 5, 0);
-        getTeam(color).sendTitleToOthers(color.getColorName() + " won!", "You lost :(", 0, 20 * 5, 0);
+        getTeam(color).sendTitle(
+            MessageUtility.parser("player.won.title").parse(),
+            MessageUtility.parser("player.won.subtitle").parse(),
+            0, 20 * 5, 0
+        );
+        getTeam(color).sendTitleToOthers(
+            MessageUtility.parser("player.lost.title").variable("team", color.getColorName()).parse(),
+            MessageUtility.parser("player.lost.subtitle").variable("team", color.getColorName()).parse(),
+            0, 20 * 5, 0
+        );
         stop(false);
     }
     
@@ -223,10 +234,15 @@ public class Game implements Listener, AutoCloseable {
         if(!isPlaying(e.getPlayer())) {
             e.getPlayer().setGameMode(GameMode.SPECTATOR);
             e.getPlayer().teleport(Bukkit.getServer().getWorlds().get(0).getSpawnLocation());
-            Utility.sendTitle(e.getPlayer(), "You are now spectating", null, 5, 35, 10);
+            Utility.sendTitle(
+                e.getPlayer(),
+                MessageUtility.parser("player.midgame-spectator.title").parse(),
+                MessageUtility.parser("player.midgame-spectator.subtitle").parse(),
+                5, 35, 10
+            );
         }
         else
-            e.setJoinMessage(e.getPlayer().getName() + " reconnected.");
+            e.setJoinMessage(BaseComponent.toLegacyText(MessageUtility.parser("player.reconnected").variable("name", e.getPlayer().getDisplayName()).parse()));
     }
     @EventHandler
     private void onInventoryClick(InventoryClickEvent e) {        
@@ -388,7 +404,7 @@ public class Game implements Listener, AutoCloseable {
                     removed.getPlayer().setGameMode(GameMode.SPECTATOR);
                     removed.getPlayer().teleport(new Location(removed.getPlayer().getLocation().getWorld(), 0, 80, 0));
                 }
-                if (removed.isOnline()) removed.getPlayer().sendMessage("You will be a spectator");
+                if (removed.isOnline()) MessageUtility.parser("player.will-be-spectator").send(removed.getPlayer());
             }
         }
 
@@ -419,14 +435,14 @@ public class Game implements Listener, AutoCloseable {
         
         // TODO: Make times configurable
         for (Location loc : Config.instance.getDiamondGenerators()) {
-            GeneratorLabel label = new GeneratorLabel("§cDiamond Generator", loc.clone().add(0, 1, 0));
+            GeneratorLabel label = new GeneratorLabel(TextComponent.fromLegacyText("§cDiamond Generator"), loc.clone().add(0, 1, 0));
             Generator gen = new Generator(loc, 4, label);
             gen.addItem(Material.DIAMOND, 600);
             
             diamondGens.add(gen);
         }
         for (Location loc : Config.instance.getEmeraldGenerators()) {
-            GeneratorLabel label = new GeneratorLabel("§cEmerald Generator", loc.clone().add(0, 1, 0));
+            GeneratorLabel label = new GeneratorLabel(TextComponent.fromLegacyText("§cEmerald Generator"), loc.clone().add(0, 1, 0));
             Generator gen = new Generator(loc, 2, label);
             gen.addItem(Material.EMERALD, 1200);
             

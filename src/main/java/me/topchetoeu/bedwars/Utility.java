@@ -25,13 +25,17 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TranslatableComponent;
 
 public class Utility {
-    public static void sendTitle(Player p, String title, String subtitle, int fadeIn, int duration, int fadeout) {
-        p.sendTitle(title, subtitle, fadeIn, duration, fadeout);
+    public static void sendTitle(Player p, BaseComponent[] title, BaseComponent[] subtitle, int fadeIn, int duration, int fadeout) {
+        String _title = title == null ? null : BaseComponent.toLegacyText(title);
+        String _subtitle = subtitle == null ? null : BaseComponent.toLegacyText(subtitle);
+        p.sendTitle(_title, _subtitle, fadeIn, duration, fadeout);
     }
-    public static void broadcastTitle(String title, String subtitle, int fadeIn, int duration, int fadeout) {
+    public static void broadcastTitle(BaseComponent[] title, BaseComponent[] subtitle, int fadeIn, int duration, int fadeout) {
         Bukkit.getOnlinePlayers().forEach(v -> sendTitle(v, title, subtitle, fadeIn, duration, fadeout));
     }
     public static boolean isParsable(String val) {
@@ -57,11 +61,16 @@ public class Utility {
         i.setItemMeta(meta);
         return i;
     }
-    public static TranslatableComponent getItemName(Material item) {
-        return new TranslatableComponent(CraftItemStack.asNMSCopy(new ItemStack(item)).n());
+    public static BaseComponent[] getItemName(Material item) {
+        return getItemName(new ItemStack(item));
     }
-    public static TranslatableComponent getItemName(ItemStack item) {
-        return new TranslatableComponent(CraftItemStack.asNMSCopy(new ItemStack(item)).n());
+    public static BaseComponent[] getItemName(ItemStack item) {
+        if (item.getItemMeta().getDisplayName() != null && !item.getItemMeta().getDisplayName().isEmpty())
+            return new ComponentBuilder().appendLegacy(item.getItemMeta().getDisplayName()).create();
+        return new ComponentBuilder()
+            .append(new TranslatableComponent(CraftItemStack.asNMSCopy(item).n()))
+            .reset()
+            .create();
     }
     public static void takeOne(Player p, EquipmentSlot e) {
         ItemStack i = p.getInventory().getItem(e);

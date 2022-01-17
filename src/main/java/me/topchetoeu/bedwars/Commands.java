@@ -17,8 +17,9 @@ import me.topchetoeu.bedwars.engine.Config;
 import me.topchetoeu.bedwars.engine.Game;
 import me.topchetoeu.bedwars.engine.Team;
 import me.topchetoeu.bedwars.engine.TeamColor;
+import me.topchetoeu.bedwars.messaging.MessageParser;
+import me.topchetoeu.bedwars.messaging.MessageUtility;
 import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.ComponentBuilder;
 
 public class Commands {
     private static File confFile = new File(Main.getInstance().getDataFolder(), "config.yml");
@@ -32,11 +33,11 @@ public class Commands {
                     if (bwp != null) {
                         bwp.kill(bwp.getPlayer().getName() + " definitely died with no admin intervention.");
                     }
-                    else return "Player is not in game!";
+                    else return MessageUtility.parser("commands.not-in-game").variable("player", p.getDisplayName()).parse();
                 }
                 return null;
             }
-            else return "The game isn't started yet";
+            else return MessageUtility.parser("commands.game-not-started").parse();
         });
     }
     @SuppressWarnings("unchecked")
@@ -50,11 +51,11 @@ public class Commands {
                         Bukkit.broadcastMessage("Player " + p.getName() + " revived!");
                         return null;
                     }
-                    else return "Player is not in game!";
+                    else return MessageUtility.parser("commands.not-in-game").variable("player", p.getDisplayName()).parse();
                 }
                 return null;
             }
-            else return "The game isn't started yet";
+            else return MessageUtility.parser("commands.game-not-started").parse();
         });
     }
     
@@ -62,20 +63,20 @@ public class Commands {
         return cmd.setExecutor((sender, _cmd, args) -> {
             if (!Game.isStarted()) {
                 Game.start();
-                sender.sendMessage("Started the game!");
+                MessageUtility.parser("commands.start.success").send(sender);
                 return null;
             }
-            else return "The game is already started";
+            else return MessageUtility.parser("commands.start.game-started").parse();
         });
     }
     public static Command stop(Command cmd) {
         return cmd.setExecutor((sender, _cmd, args) -> {
             if (Game.isStarted()) {
                 Game.stop();
-                sender.sendMessage("Stopped the game!");
+                MessageUtility.parser("commands.stop.success").send(sender);
                 return null;
             }
-            else return "The game is not started";
+            else return MessageUtility.parser("commands.start.game-not-started").parse();
         });
     }
 
@@ -105,12 +106,12 @@ public class Commands {
                 if (Config.instance.getColor(name.toLowerCase()) == null) {
                     Config.instance.getColors().add(new TeamColor(name, wool, Color.fromRGB(r, g, b), chatColor));
                     Config.instance.save(confFile);
-                    sender.sendMessage("New base was created!");
+                    MessageUtility.parser("commands.base-add.success").variable("base", name).send(sender);
                     return null;
                 }
-                else return "Base with this name already exists!";
+                else return MessageUtility.parser("commands.base-add.already-exists").variable("base", name).parse();
             }
-            else return "Can't make modifications to the map while a game is ongoing!";
+            else return MessageUtility.parser("commands.base-add.game-started").parse();
         });
     }
 
@@ -121,7 +122,7 @@ public class Commands {
                 TeamColor color = (TeamColor)args.get("team");
                 Config.instance.getColors().remove(color);
                 Config.instance.save(confFile);
-                sender.sendMessage("Base removed!");
+                MessageUtility.parser("commands.base-remove").variable("base", color.getColorName()).send(sender);
                 return null;
             });
     }
@@ -135,7 +136,7 @@ public class Commands {
 
                 color.setSpawnLocation(loc);
                 Config.instance.save(confFile);
-                sender.sendMessage("Base spawn set");
+                MessageUtility.parser("commands.base-spawn").variable("base", color.getColorName()).send(sender);
 
                 return null;
             });
@@ -150,7 +151,7 @@ public class Commands {
 
                 color.setGeneratorLocation(loc);
                 Config.instance.save(confFile);
-                sender.sendMessage("Base generator set");
+                MessageUtility.parser("commands.base-generator").variable("base", color.getColorName()).send(sender);
 
                 return null;
             });
@@ -165,7 +166,7 @@ public class Commands {
 
                 color.setBedLocation(loc);
                 Config.instance.save(confFile);
-                sender.sendMessage("Base bed set");
+                MessageUtility.parser("commands.base-bed").variable("base", color.getColorName()).send(sender);
 
                 return null;
             });
@@ -177,14 +178,22 @@ public class Commands {
                 List<TeamColor> colors = Config.instance.getColors();
                 
                 if (colors.size() != 0) {
-                    sender.sendMessage("Bases:");
+                    MessageUtility.parser("commands.base-list.title").variable("count", colors.size()).send(sender);
                     for (TeamColor color : colors) {
-                        ComponentBuilder cb = new ComponentBuilder().append(color.getName()).color(color.getChatColor());
-                        if (!color.isFullySpecified()) cb.append(" (not fully specified)").reset().italic(true);
-                        sender.spigot().sendMessage(cb.create());
+                        MessageParser parser = MessageUtility.parser("commands.base-list.not-fully-specified");
+
+                        if (color.isFullySpecified()) parser = MessageUtility.parser("commands.base-list.fully-specified");
+
+                        parser
+                            .variable("name", color.getColorName())
+                            .variable("woolId", color.getWoolMaterial().getKey())
+                            .variable("colorRed", color.getColor().getRed())
+                            .variable("colorGreen", color.getColor().getGreen())
+                            .variable("colorBlue", color.getColor().getBlue())
+                            .send(sender);
                     }
                 }
-                else sender.sendMessage("No bases found.");
+                else MessageUtility.parser("commands.base-list.no-bases").send(sender);
 
                 return null;
             });
@@ -195,7 +204,7 @@ public class Commands {
         return cmd
             .addChild(basesArg()).setRecursive(true)
             .setExecutor((sender, _cmd, args) -> {
-                if (!Game.isStarted()) return "A game hasn't been started yet.";
+                if (!Game.isStarted()) return MessageUtility.parser("commands.game-not-started").parse();
                 
                 List<TeamColor> colors = (List<TeamColor>)args.get("team");
                 ArrayList<Team> teams = new ArrayList<>();
@@ -203,7 +212,7 @@ public class Commands {
                     Team team = Game.instance.getTeam(color);
                     
                     if (team == null) {
-                        return "The team color %s isn't in the game.".formatted(color.getName());
+                        return MessageUtility.parser("commands.break-bed.not-in-game").variable("team", color.getColorName()).parse();
                     }
                     
                     teams.add(team);
@@ -222,7 +231,7 @@ public class Commands {
             Location loc = (Location)args.get("location");
             Config.instance.getDiamondGenerators().add(loc);
             Config.instance.save(confFile);
-            sender.sendMessage("§aGenerator added!");
+            MessageUtility.parser("commands.generator-create.diamond").send(sender);
             return null;
         });
     }
@@ -231,7 +240,7 @@ public class Commands {
             Location loc = (Location)args.get("location");
             Config.instance.getEmeraldGenerators().add(loc);
             Config.instance.save(confFile);
-            sender.sendMessage("§aGenerator added!");
+            MessageUtility.parser("commands.generator-create.emerald").send(sender);
             return null;
         });
     }
@@ -239,7 +248,7 @@ public class Commands {
         return cmd.setExecutor((sender, _cmd, args) -> {
             Config.instance.getEmeraldGenerators().clear();
             Config.instance.save(confFile);
-            sender.sendMessage("§aGenerators cleared!");
+            MessageUtility.parser("commands.generator-create.clear").send(sender);
             return null;
         });
     }

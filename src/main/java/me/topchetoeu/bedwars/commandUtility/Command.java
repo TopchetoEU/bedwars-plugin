@@ -24,6 +24,7 @@ import me.topchetoeu.bedwars.commandUtility.args.PlayerArgParser;
 import me.topchetoeu.bedwars.commandUtility.args.StringArgParser;
 import me.topchetoeu.bedwars.commandUtility.args.Suggestions;
 import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 
 public class Command {
@@ -150,12 +151,12 @@ public class Command {
         );
         else {
             if (toExecute.isRecursive() && !newArgs.containsKey(toExecute.name)) newArgs.put(toExecute.name, new ArrayList<>());
-            err = toExecute.getExecutor().execute(sender, this, newArgs);
-            if (err != null) sender.spigot().sendMessage(new ComponentBuilder()
+            BaseComponent[] _err = toExecute.getExecutor().execute(sender, this, newArgs);
+            if (_err != null && _err.length > 0) sender.spigot().sendMessage(new ComponentBuilder()
                 .append("Error: ")
                 .color(ChatColor.DARK_RED)
                 .append(err)
-                .color(ChatColor.RED)
+                .reset()
                 .create()
             );
         }

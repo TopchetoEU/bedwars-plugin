@@ -7,6 +7,7 @@ import java.util.logging.Level;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -18,6 +19,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import me.topchetoeu.bedwars.commandUtility.Command;
 import me.topchetoeu.bedwars.commandUtility.CommandExecutors;
+import me.topchetoeu.bedwars.engine.AttackCooldownEradicator;
 import me.topchetoeu.bedwars.engine.Config;
 import me.topchetoeu.bedwars.engine.Game;
 import me.topchetoeu.bedwars.engine.trader.Favourites;
@@ -34,6 +36,7 @@ import me.topchetoeu.bedwars.engine.trader.upgrades.FatigueTeamUpgrade;
 import me.topchetoeu.bedwars.engine.trader.upgrades.HealTeamUpgrade;
 import me.topchetoeu.bedwars.engine.trader.upgrades.ProtectionTeamUpgrade;
 import me.topchetoeu.bedwars.engine.trader.upgrades.SharpnessTeamUpgrade;
+import me.topchetoeu.bedwars.messaging.MessageUtility;
 
 // TODO add permissions
 
@@ -56,7 +59,11 @@ public class Main extends JavaPlugin implements Listener {
     
     private void stopTimer() {
         if (timerTask == null) return;
-        Utility.broadcastTitle("Not enough players!", null, 10, 40, 5);
+        Utility.broadcastTitle(
+            MessageUtility.parser("pre-game.not-enough-players.title").parse(),
+            MessageUtility.parser("pre-game.not-enough-players.subtitle").parse(),
+            10, 40, 5
+        );
         timerTask.cancel();
         timerTask = null;
     }
@@ -68,10 +75,20 @@ public class Main extends JavaPlugin implements Listener {
                 stopTimer();
                 return;
             }
-            if (timer % 30 == 0 || timer == 15 || timer == 10)
-                Utility.broadcastTitle("Starting in " + timer + " seconds!", null, 10, 40, 5);
-            else if (timer <= 5)
-                Utility.broadcastTitle("Starting in " + timer + " seconds!", null, 0, 20, 0);
+            if (timer % 30 == 0 || timer == 15 || timer == 10) {
+                Utility.broadcastTitle(
+                    MessageUtility.parser("pre-game.starting.title").variable("time", timer).parse(),
+                    MessageUtility.parser("pre-game.starting.subtitle").variable("time", timer).parse(),
+                    10, 40, 5
+                );
+            }
+            else if (timer <= 5) {
+                Utility.broadcastTitle(
+                    MessageUtility.parser("pre-game.starting.title").variable("time", timer).parse(),
+                    MessageUtility.parser("pre-game.starting.subtitle").variable("time", timer).parse(),
+                    0, 21, 0
+                );
+            }
             timer--;
             if (timer <= 0) {
                 Game.start();
@@ -84,7 +101,6 @@ public class Main extends JavaPlugin implements Listener {
         // TODO make timing configurable
         if (!Game.isStarted()) {
             if (playerCount <= 1 || playerCount <= getGameSize() / 4) {
-                Utility.broadcastTitle("Not enough players", "Waiting for more...", 0, 100, 0);
                 stopTimer();
             }
             else if (playerCount <= getGameSize() / 2) {
@@ -130,7 +146,9 @@ public class Main extends JavaPlugin implements Listener {
                 conf.createNewFile();
             Config.load(conf);
             File defaultFavs = new File(getDataFolder(), "default-favourites.yml");
-    
+
+            MessageUtility.load(new File(getDataFolder(), "messages.yml"));
+
             if (!defaultFavs.exists())
                 defaultFavs.createNewFile();
             
@@ -141,7 +159,9 @@ public class Main extends JavaPlugin implements Listener {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            
+
+            AttackCooldownEradicator.init(this);
+
             YamlConfiguration sectionsConf = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "sections.yml"));
 
             BlindnessTeamUpgrade.init(this);
@@ -187,36 +207,37 @@ public class Main extends JavaPlugin implements Listener {
 
             Commands.createDiamondGen(generator.literal("diamond"));
             Commands.createEmeraldGen(generator.literal("emerald", "em"));
-            Commands.clearGens(generator.literal("emerald", "em"));
+            Commands.clearGens(generator.literal("clear"));
 
             Commands.breakBed(cmd.literal("breakbed", "cheat", "bedishonest", "abusepowers"));
+            cmd.literal("villagertools", "villagers", "traders")
+                .setHelpMessage("Gives you tools to manage traders")
+                .setExecutor((sender, _cmd, args) -> {
+                    if (sender instanceof Player) {
+                        Player p = (Player)sender;
+                        Traders.instance.give(p);
+                        return null;
+                    }
+                    else return MessageUtility.parser("commands.for-players").parse();
 
+                });
             cmd.register(this);
-                // .attachCommand(new Command("respawn", "revive")
-                //     .setExecutor(Commands.revive)
-                //     .setHelpMessage("Respawns a spectator, if he has a bed, he is immediatly respawned"))
-                // .attachCommand(new Command("breakbed", "eliminateteam")
-                //     .setExecutor(Commands.breakBed)
-                //     .setHelpMessage("Destoys the bed of a team")
-                // )
-                // .attachCommand(new Command("eliminate")
-                //     .setHelpMessage("Eliminates a player")
-                // )
-                // .attachCommand(new Command("killteam")
-                //     .setHelpMessage("Kills all players of a team")
-                // )
-                // .attachCommand(new Command("villagertools", "villager", "trader")
-                //     .setExecutor((sender, _cmd, alias, args) -> {
-                //         if (args.length == 0) {
-                //             if (sender instanceof Player) {
-                //                 Player p = (Player)sender;
-                //                 Traders.instance.give(p);
-                //             }
-                //         }
-                //     })
-                //     .setHelpMessage("Gives you tools to manage traders")
-                // )
-                // .register(this);
+
+            // .attachCommand(new Command("respawn", "revive")
+            //     .setExecutor(Commands.revive)
+            //     .setHelpMessage("Respawns a spectator, if he has a bed, he is immediatly respawned"))
+            // .attachCommand(new Command("breakbed", "eliminateteam")
+            //     .setExecutor(Commands.breakBed)
+            //     .setHelpMessage("Destoys the bed of a team")
+            // )
+            // .attachCommand(new Command("eliminate")
+            //     .setHelpMessage("Eliminates a player")
+            // )
+            // .attachCommand(new Command("killteam")
+            //     .setHelpMessage("Kills all players of a team")
+            // )
+            // 
+            // .register(this);
             
             getServer().getPluginManager().registerEvents(this, this);
         }

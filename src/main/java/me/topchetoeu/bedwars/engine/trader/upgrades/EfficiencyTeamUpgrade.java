@@ -53,7 +53,7 @@ public class EfficiencyTeamUpgrade implements TeamUpgrade {
     public void upgradeItem(ItemStack item) {
         if (item == null) return;
         
-        if (Utility.isArmor(item.getType())) {
+        if (Utility.isTool(item.getType())) {
             item.addEnchantment(Enchantment.DIG_SPEED, level);
         }
     }

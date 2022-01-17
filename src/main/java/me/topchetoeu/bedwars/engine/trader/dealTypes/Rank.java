@@ -104,8 +104,9 @@ public class Rank implements Listener {
             for (; i <= targetI; i++) {
                 tiers.get(i).apply(inv, p, this);
             }
-            
+            ItemStack[] armor = p.getInventory().getArmorContents();
             p.getInventory().setContents(inv);
+            p.getInventory().setArmorContents(armor);
         }
         
         currentTier.put(player.getUniqueId(), target);
@@ -193,7 +194,9 @@ public class Rank implements Listener {
             }
         }
 
+        ItemStack[] armor = p.getInventory().getArmorContents();
         p.getInventory().setContents(inv);
+        p.getInventory().setArmorContents(armor);
         p.updateInventory();
     }
     

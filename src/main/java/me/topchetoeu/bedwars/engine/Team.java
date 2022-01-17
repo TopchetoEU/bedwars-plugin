@@ -27,7 +27,8 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import me.topchetoeu.bedwars.Main;
 import me.topchetoeu.bedwars.Utility;
 import me.topchetoeu.bedwars.engine.trader.upgrades.TeamUpgrade;
-import net.md_5.bungee.api.chat.ComponentBuilder;
+import me.topchetoeu.bedwars.messaging.MessageUtility;
+import net.md_5.bungee.api.chat.BaseComponent;
 
 public class Team implements Listener, AutoCloseable {
     private TeamColor color;
@@ -66,13 +67,17 @@ public class Team implements Listener, AutoCloseable {
         for (BedwarsPlayer bwp : players) {
             if (bwp.isOnline()) {
                 Player p = bwp.getOnlinePlayer();
+        
+                MessageUtility.parser("team.bed-broken.notification")
+                    .variable("team", getTeamColor().getColorName())
+                    .variable("player", p == null ? "a very strong wind current" : p.getDisplayName())
+                    .broadcast();
                 
-                ComponentBuilder cb = new ComponentBuilder().append(color.getColorName()).append("'s bed was destroyed").reset();
-                if (player != null) cb.append(" by " + player.getName());
-                cb.append(".");
-                Bukkit.spigot().broadcast(cb.create());
-                
-                Utility.sendTitle(p, "Bed destroyed!", "You will no longer respawn!", 5, 35, 10);
+                Utility.sendTitle(p,
+                    MessageUtility.parser("team.bed-broken.title").parse(),
+                    MessageUtility.parser("team.bed-broken.subtitle").parse(),
+                    5, 35, 10
+                );
                 p.playSound(p.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
             }
         }
@@ -179,10 +184,10 @@ public class Team implements Listener, AutoCloseable {
                 if (hasPlayer(e.getPlayer())) {
                     e.setCancelled(true);
                     if (getPlayersCount() == 1) {
-                        e.getPlayer().sendMessage("§4You may not destroy your bed.");
+                        MessageUtility.parser("player.solo.break-own-bed").send(e.getPlayer());
                     }
                     else {
-                        e.getPlayer().sendMessage("§4You may not destroy your team's bed.");
+                        MessageUtility.parser("player.team.break-own-bed").send(e.getPlayer());
                     }
                 }
                 else {
@@ -195,17 +200,17 @@ public class Team implements Listener, AutoCloseable {
         }
     }
     
-    public void sendMessage(String msg) {
+    public void sendMessage(BaseComponent[] msg) {
         for (BedwarsPlayer bwp : players) {
-            if (bwp.isOnline()) bwp.getOnlinePlayer().sendMessage(msg);
+            if (bwp.isOnline()) bwp.getOnlinePlayer().spigot().sendMessage(msg);
         }
     }
-    public void sendTitle(String title, String subtitle, int fadein, int duration, int fadeout) {
+    public void sendTitle(BaseComponent[] title, BaseComponent[] subtitle, int fadein, int duration, int fadeout) {
         for (BedwarsPlayer bwp : players) {
             if (bwp.isOnline()) Utility.sendTitle(bwp.getOnlinePlayer(), title, subtitle, fadein, duration, fadeout);
         }
     }
-    public void sendTitleToOthers(String title, String subtitle, int fadein, int duration, int fadeout) {
+    public void sendTitleToOthers(BaseComponent[] title, BaseComponent[] subtitle, int fadein, int duration, int fadeout) {
         for (Player p : Bukkit.getServer().getOnlinePlayers()) {
             if (players.stream().noneMatch(v -> v.getPlayer().getUniqueId().equals(p.getUniqueId())))
                 Utility.sendTitle(p, title, subtitle, fadein, duration, fadeout);

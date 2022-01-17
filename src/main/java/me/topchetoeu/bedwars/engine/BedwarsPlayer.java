@@ -12,11 +12,14 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftItemStack;
 
 import me.topchetoeu.bedwars.Utility;
 import me.topchetoeu.bedwars.engine.trader.dealTypes.RankedDealType;
+import me.topchetoeu.bedwars.messaging.MessageUtility;
 import net.minecraft.network.protocol.game.PacketPlayOutEntityEquipment;
 import net.minecraft.world.entity.EnumItemSlot;
 
@@ -213,8 +216,8 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
                         reviveTask = null;
                     }
                     Utility.sendTitle(player.getPlayer(),
-                        "You died!",
-                        String.format("Respawning in %.2f", revivalTimer),
+                        MessageUtility.parser("player.died.title").parse(),
+                        MessageUtility.parser("player.died.subtitle").variable("time", "%.2f".formatted(revivalTimer)).parse(),
                         0, 4, 5
                     );
                     revivalTimer -= 0.1;
@@ -259,7 +262,6 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
         }
         else revivalPending = true;
     }
-    @SuppressWarnings("deprecation")
     public void eliminate() {
         if (spectator) return;
         if (!dead) {
@@ -271,17 +273,30 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
         Bukkit.getServer().broadcastMessage(String.format("%s was eliminated.", player.getName()));
         
         if (team.decreaseRemainingPlayers() > 0) {
-            // TODO fix these messages
-            // Also, this deprecation is just fine :)
-            player.getPlayer().sendTitle("You are dead", "You can only spectate your more intelligent friends");
+            Utility.sendTitle(
+                getOnlinePlayer(),
+                MessageUtility.parser("player.solo.eliminated.title").parse(),
+                MessageUtility.parser("player.solo.eliminated.subtitle").parse(),
+                5, 40, 10
+            );
         }
         else
             Bukkit.getServer().broadcastMessage(String.format("Team %s was eliminated.", team.getTeamColor().getName()));
             if (team.getPlayersCount() == 1) {
-                player.getPlayer().sendTitle("You were eliminated!", "Now you can spectate");
+                Utility.sendTitle(
+                    getOnlinePlayer(),
+                    MessageUtility.parser("player.solo.eliminated.title").parse(),
+                    MessageUtility.parser("player.solo.eliminated.subtitle").parse(),
+                    5, 40, 10
+                );
             }
             else
-                player.getPlayer().sendTitle("Your team was eliminated", "Your team fucked up bad time :(");
+            Utility.sendTitle(
+                getOnlinePlayer(),
+                MessageUtility.parser("player.team.eliminated.title").parse(),
+                MessageUtility.parser("player.team.eliminated.subtitle").parse(),
+                5, 40, 10
+            );
     
         spectator = true;
     }
@@ -344,6 +359,9 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
         if (e.getEntity() instanceof Player) {
             Player p = (Player)e.getEntity();
             if (equals(p)) {
+                AttributeInstance attribute = p.getAttribute(Attribute.GENERIC_ATTACK_SPEED);
+                attribute.setBaseValue(16);
+                p.saveData();
                 if (e.getDamager() instanceof Player) {
                     offender = (OfflinePlayer)e.getDamager();
                 }

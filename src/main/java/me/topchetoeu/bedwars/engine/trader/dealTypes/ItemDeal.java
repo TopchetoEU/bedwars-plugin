@@ -10,6 +10,7 @@ import me.topchetoeu.bedwars.engine.BedwarsPlayer;
 import me.topchetoeu.bedwars.engine.Game;
 import me.topchetoeu.bedwars.engine.WoodenSword;
 import me.topchetoeu.bedwars.engine.trader.Deal;
+import me.topchetoeu.bedwars.messaging.MessageUtility;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -31,7 +32,6 @@ public class ItemDeal implements Deal {
     public BaseComponent[] getDealName(Player p) {
         ComponentBuilder builder = new ComponentBuilder()
             .append(Integer.toString(item.getAmount()))
-            .color(ChatColor.WHITE)
             .append("x ")
             .append(Utility.getItemName(item));
         if (!implemented) builder.append(" (not implemented)").bold(true).color(ChatColor.RED);
@@ -54,7 +54,11 @@ public class ItemDeal implements Deal {
     @Override
     public void commence(Player p) {
         if (!implemented) {
-            p.sendMessage("The item you're trying to buy is not implemented yet.");
+            MessageUtility.parser("player.trade.not-implemented")
+                .variable("name", getDealName(p))
+                .variable("price", getPrice(p))
+                .variable("priceType", getPriceType(p))
+                .send(p);
             return;
         }
         ItemStack item = getDealItem(p);

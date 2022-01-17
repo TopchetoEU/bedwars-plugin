@@ -23,9 +23,10 @@ import me.topchetoeu.bedwars.InventoryUtility;
 import me.topchetoeu.bedwars.Main;
 import me.topchetoeu.bedwars.Utility;
 import me.topchetoeu.bedwars.engine.trader.dealTypes.ItemDeal;
+import me.topchetoeu.bedwars.messaging.MessageUtility;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.TextComponent;
 
 // Very bad code.
 public class TraderGUI implements Listener {
@@ -46,14 +47,16 @@ public class TraderGUI implements Listener {
     }
     
     public ItemStack generateDealItem(Deal d, boolean addFavouriteLore) {
-        String name = "§r" + BaseComponent.toLegacyText(d.getDealName(player));
-        if (d.alreadyBought(player)) name += " §4(already unlocked)";
-        else name += String.format(" (%dx %s)", 
-            d.getPrice(player),
-            BaseComponent.toLegacyText(Utility.getItemName(d.getPriceType(player)))
-        );
+        ComponentBuilder cb = new ComponentBuilder().append(d.getDealName(player));
+        if (d.alreadyBought(player)) cb.append("(already unlocked)").color(ChatColor.DARK_RED);
+        else cb
+            .append(" (%dx ".formatted(d.getPrice(player)))
+            .reset()
+            .append(BaseComponent.toLegacyText(Utility.getItemName(d.getPriceType(player)))).color(ChatColor.DARK_RED)
+            .append(")")
+            .reset();
 
-        ItemStack item = Utility.copyNamedItem(d.getDealItem(player), name);
+        ItemStack item = Utility.copyNamedItem(d.getDealItem(player), BaseComponent.toLegacyText(cb.create()));
         
         if (addFavouriteLore) {
             List<String> lore = new ArrayList<>();
@@ -155,7 +158,7 @@ public class TraderGUI implements Listener {
     
     public void trade(Deal deal) {        
         if (deal.alreadyBought(player)) {
-            player.sendMessage("You already own this.");
+            MessageUtility.parser("trade.already-unlocked").variable("name", deal.getDealName(player)).send(player);
             player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
         }
         else {
@@ -173,7 +176,11 @@ public class TraderGUI implements Listener {
                     
                     player.getInventory().setContents(inv);
                     
-                    player.spigot().sendMessage(new ComponentBuilder().append("You just purchased ").append(deal.getDealName(player)).create());
+                    MessageUtility.parser("trade.purchase")
+                        .variable("name", deal.getDealName(player))
+                        .variable("price", deal.getPrice(player))
+                        .variable("priceType", Utility.getItemName(deal.getPriceType(player)))
+                        .send(player);
                     deal.commence(player);
                     updateSection();
                     if (player.getInventory().contains(Material.STONE_SWORD) ||
@@ -186,12 +193,11 @@ public class TraderGUI implements Listener {
                     player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_YES, 1, 1);
                 }
                 else {
-                    player.spigot().sendMessage(new ComponentBuilder()
-                        .append("You don't have enough ")
-                        .append(Utility.getItemName(deal.getPriceType(player)))
-                        .append(new TextComponent("!"))
-                        .create()
-                    );
+                    MessageUtility.parser("trade.not-enough-resources")
+                        .variable("name", deal.getDealName(player))
+                        .variable("price", deal.getPrice(player))
+                        .variable("priceType", Utility.getItemName(deal.getPriceType(player)))
+                        .send(player);
                     player.playSound(player.getLocation(), Sound.ENTITY_VILLAGER_NO, 1, 1);
                 }
             }
