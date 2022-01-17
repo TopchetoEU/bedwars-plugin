@@ -11,7 +11,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
-import me.topchetoeu.bedwars.commandUtility.Command;
+import me.topchetoeu.bedwars.commands.Command;
 import me.topchetoeu.bedwars.engine.BedwarsPlayer;
 import me.topchetoeu.bedwars.engine.Config;
 import me.topchetoeu.bedwars.engine.Game;

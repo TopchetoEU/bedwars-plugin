@@ -17,7 +17,7 @@ public class HoverLabel {
     private Location loc;
     
     private ArmorStand generateArmorStand(Location loc, BaseComponent[] name) {
-        if (name == null || name.equals("")) return null;
+        if (name == null || name.length == 0) return null;
         ArmorStand as = (ArmorStand)loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
         
         as.setGravity(false);
@@ -59,7 +59,7 @@ public class HoverLabel {
         for (int i = 0; i < n; i++) {
             BaseComponent[] line = data.get(i);
             
-            if (line == null || line.equals("")) {
+            if (line == null || line.length == 0) {
                 if (armorStands.get(i) != null) armorStands.get(i).remove();
                 armorStands.set(i, null);
             }

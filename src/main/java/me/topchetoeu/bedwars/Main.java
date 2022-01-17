@@ -17,8 +17,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
-import me.topchetoeu.bedwars.commandUtility.Command;
-import me.topchetoeu.bedwars.commandUtility.CommandExecutors;
+import me.topchetoeu.bedwars.commands.Command;
+import me.topchetoeu.bedwars.commands.CommandExecutors;
 import me.topchetoeu.bedwars.engine.AttackCooldownEradicator;
 import me.topchetoeu.bedwars.engine.Config;
 import me.topchetoeu.bedwars.engine.Game;
@@ -37,8 +37,6 @@ import me.topchetoeu.bedwars.engine.trader.upgrades.HealTeamUpgrade;
 import me.topchetoeu.bedwars.engine.trader.upgrades.ProtectionTeamUpgrade;
 import me.topchetoeu.bedwars.engine.trader.upgrades.SharpnessTeamUpgrade;
 import me.topchetoeu.bedwars.messaging.MessageUtility;
-
-// TODO add permissions
 
 public class Main extends JavaPlugin implements Listener {
     
@@ -145,12 +143,12 @@ public class Main extends JavaPlugin implements Listener {
             if (!conf.exists())
                 conf.createNewFile();
             Config.load(conf);
-            File defaultFavs = new File(getDataFolder(), "default-favourites.yml");
+            File defaultFavourites = new File(getDataFolder(), "default-favourites.yml");
 
             MessageUtility.load(new File(getDataFolder(), "messages.yml"));
 
-            if (!defaultFavs.exists())
-                defaultFavs.createNewFile();
+            if (!defaultFavourites.exists())
+                defaultFavourites.createNewFile();
             
             File favsDir = new File(getDataFolder(), "favourites");
     
@@ -177,7 +175,7 @@ public class Main extends JavaPlugin implements Listener {
             EnforcedRankedDealType.init();
             RankedUpgradeDealType.init();
             Sections.init(new File(getDataFolder(), "sections.yml"));
-            Favourites.instance = new Favourites(favsDir, defaultFavs);
+            Favourites.instance = new Favourites(favsDir, defaultFavourites);
             
             updateTimer();
             
@@ -185,33 +183,34 @@ public class Main extends JavaPlugin implements Listener {
                 v.setAI(false);
             });
 
-            Command cmd = Command.createLiteral("bedwars", "bw");
+            Command cmd = Command.createLiteral("bedwars", "bw").permission("bedwars");
 
-            cmd.literal("help").setExecutor(CommandExecutors.help()).string("args", false).setRecursive(true).setExecutor(CommandExecutors.help());
-            Commands.start(cmd.literal("start"));
-            Commands.stop(cmd.literal("stop"));
+            cmd.literal("help").permission("bedwars.help").setExecutor(CommandExecutors.help()).string("args", false).setRecursive(true).setExecutor(CommandExecutors.help());
+            Commands.start(cmd.literal("start")).permission("bedwars.control.start");
+            Commands.stop(cmd.literal("stop")).permission("bedwars.control.stop");
 
-            Commands.kill(cmd.literal("kill"));
-            Commands.revive(cmd.literal("revive"));
+            Commands.kill(cmd.literal("kill")).permission("bedwars.cheat.kill");
+            Commands.revive(cmd.literal("revive")).permission("bedwars.cheat.revive");
 
-            Command config = cmd.literal("configuration", "config", "conf");
-            Command base = config.literal("base");
-            Command generator = config.literal("generator", "gen");
+            Command config = cmd.literal("configuration", "config", "conf").permission("bedwars.conf");
+            Command base = config.literal("base").permission("bedwars.conf.bases");
+            Command generator = config.literal("generator", "gen").permission("bedwars.conf.generators");
 
-            Commands.baseAdd(base.literal("add"));
-            Commands.baseRemove(base.literal("remove"));
-            Commands.baseSetSpawn(base.literal("setspawn", "spawn"));
-            Commands.baseSetGenerator(base.literal("setgenerator", "generator", "gen"));
-            Commands.baseSetBed(base.literal("setbed", "bed"));
-            Commands.baseList(base.literal("list", "l"));
+            Commands.baseAdd(base.literal("add")).permission("bedwars.config.bases.add");
+            Commands.baseRemove(base.literal("remove")).permission("bedwars.config.bases.remove");
+            Commands.baseSetSpawn(base.literal("setspawn", "spawn")).permission("bedwars.config.bases.setspawn");
+            Commands.baseSetGenerator(base.literal("setgenerator", "generator", "gen")).permission("bedwars.config.bases.setgenerator");
+            Commands.baseSetBed(base.literal("setbed", "bed")).permission("bedwars.config.bases.setbed");
+            Commands.baseList(base.literal("list", "l")).permission("bedwars.config.bases.list");
 
-            Commands.createDiamondGen(generator.literal("diamond"));
-            Commands.createEmeraldGen(generator.literal("emerald", "em"));
-            Commands.clearGens(generator.literal("clear"));
+            Commands.createDiamondGen(generator.literal("diamond")).permission("bedwars.config.generators.diamond");
+            Commands.createEmeraldGen(generator.literal("emerald", "em")).permission("bedwars.config.generators.emerald");
+            Commands.clearGens(generator.literal("clear")).permission("bedwars.config.generators.clear");
 
-            Commands.breakBed(cmd.literal("breakbed", "cheat", "bedishonest", "abusepowers"));
+            Commands.breakBed(cmd.literal("breakbed", "cheat", "bedishonest", "abusepowers")).permission("bedwars.config.cheat.breakbed");
             cmd.literal("villagertools", "villagers", "traders")
                 .setHelpMessage("Gives you tools to manage traders")
+                .permission("bedwars.villagertools")
                 .setExecutor((sender, _cmd, args) -> {
                     if (sender instanceof Player) {
                         Player p = (Player)sender;
@@ -225,10 +224,10 @@ public class Main extends JavaPlugin implements Listener {
 
             // .attachCommand(new Command("respawn", "revive")
             //     .setExecutor(Commands.revive)
-            //     .setHelpMessage("Respawns a spectator, if he has a bed, he is immediatly respawned"))
+            //     .setHelpMessage("Respawns a spectator, if he has a bed, he is immediately respawned"))
             // .attachCommand(new Command("breakbed", "eliminateteam")
             //     .setExecutor(Commands.breakBed)
-            //     .setHelpMessage("Destoys the bed of a team")
+            //     .setHelpMessage("Destroys the bed of a team")
             // )
             // .attachCommand(new Command("eliminate")
             //     .setHelpMessage("Eliminates a player")
