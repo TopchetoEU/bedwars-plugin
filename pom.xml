@@ -24,12 +24,26 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.bukkit</groupId>  
-      <artifactId>bukkit</artifactId>  
-      <version>1.0</version> 
+      <groupId>bukkit</groupId>
+      <artifactId>bukkit</artifactId>
+      <version>1.0</version>
       <scope>system</scope>
       <systemPath>${basedir}/deps/bukkit.jar</systemPath>
-  </dependency>
+    </dependency>
+    <dependency>
+      <groupId>aaaaaaa</groupId>
+      <artifactId>aaaaaaaaa</artifactId>
+      <version>1.0</version>
+      <scope>system</scope>
+      <systemPath>${basedir}/deps/server.jar</systemPath>
+    </dependency>
+    <dependency>
+      <groupId>server</groupId>
+      <artifactId>server</artifactId>
+      <version>1.0</version>
+      <scope>system</scope>
+      <systemPath>${basedir}/deps/datafixerupper.jar</systemPath>
+    </dependency>
   </dependencies>
 
   <build>

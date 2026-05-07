@@ -15,20 +15,20 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 public class Config {
 	public static Config instance;
-	
+
 	private int perTeam = 0;
 	private Location respawnLocation;
 	private ArrayList<TeamColor> colors;
 	private ArrayList<Location> diamondGenerators;
 	private ArrayList<Location> emeraldGenerators;
-	
+
 	public Location getRespawnLocation() {
 		return respawnLocation;
 	}
 	public void setRespawnLocation(Location loc) {
 		respawnLocation = loc;
 	}
-	
+
 	public int getTeamSize() {
 		return perTeam;
 	}
@@ -46,7 +46,7 @@ public class Config {
 			.findFirst()
 			.orElse(null);
 	}
-	
+
 	public ArrayList<Location> getDiamondGenerators() {
 		return diamondGenerators;
 	}
@@ -54,7 +54,7 @@ public class Config {
 		if (diamondGenerators.size() == 0) return null;
 		Location closest = null;
 		double smallestDist = diamondGenerators.get(0).distance(loc);
-		
+
 		for (int i = 0; i < diamondGenerators.size(); i++) {
 			Location el = diamondGenerators.get(i);
 			double dist = el.distance(loc);
@@ -63,7 +63,7 @@ public class Config {
 				smallestDist = dist;
 			}
 		}
-		
+
 		return closest;
 	}
 	public List<Location> getDiamondGeneratorsInRadius(double radius, Location loc) {
@@ -71,7 +71,7 @@ public class Config {
 			.filter(v -> v.distance(loc) <= radius)
 			.collect(Collectors.toList());
 	}
-	
+
 	public ArrayList<Location> getEmeraldGenerators() {
 		return emeraldGenerators;
 	}
@@ -79,7 +79,7 @@ public class Config {
 		if (diamondGenerators.size() == 0) return null;
 		Location closest = null;
 		double smallestDist = emeraldGenerators.get(0).distance(loc);
-		
+
 		for (int i = 0; i < emeraldGenerators.size(); i++) {
 			Location el = emeraldGenerators.get(i);
 			double dist = el.distance(loc);
@@ -88,7 +88,7 @@ public class Config {
 				smallestDist = dist;
 			}
 		}
-		
+
 		return closest;
 	}
 	public List<Location> getEmeraldGeneratorsInRadius(double radius, Location loc) {
@@ -96,17 +96,17 @@ public class Config {
 			.filter(v -> v.distance(loc) <= radius)
 			.collect(Collectors.toList());
 	}
-	
+
 	private static ArrayList<?> toList(Stream<?> s) {
 		return new ArrayList<>(s.collect(Collectors.toList()));
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static void load(File confFile) {
 		Configuration conf = YamlConfiguration.loadConfiguration(confFile);
-		
+
 		Config c = new Config();
-		
+
 		c.perTeam = conf.getInt("perTeam");
 		if (conf.get("respawnLocation") != null) c.respawnLocation = Location.deserialize(conf.getConfigurationSection("respawnLocation").getValues(false));
 		c.colors = (ArrayList<TeamColor>)toList(conf
@@ -124,7 +124,7 @@ public class Config {
 				.stream()
 				.map(v -> Location.deserialize((Map<String, Object>)v))
 			);
-		
+
 		instance = c;
 	}
 
@@ -135,11 +135,10 @@ public class Config {
 		conf.set("colors", toList(colors.stream().map(v -> v.serialize())));
 		conf.set("diamondGenerators", toList(diamondGenerators.stream().map(v -> v.serialize())));
 		conf.set("emeraldGenerators", toList(emeraldGenerators.stream().map(v -> v.serialize())));
-		
+
 		try {
 			conf.save(confFile);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

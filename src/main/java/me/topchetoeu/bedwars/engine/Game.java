@@ -50,7 +50,7 @@ public class Game implements Listener, AutoCloseable {
 	private static Deque<Location> placedBlocks = new ArrayDeque<>();
 	private static HashSet<SavedBlock> brokenBlocks = new HashSet<>();
 	// private static int onlineCount;
-	
+
 	public static boolean inGame(OfflinePlayer p) {
 		return isStarted() && instance.isPlaying(p);
 	}
@@ -64,18 +64,18 @@ public class Game implements Listener, AutoCloseable {
 		Bukkit.getOnlinePlayers().forEach(p -> {
 			RankedDealType.getDefinedRanks().values().forEach(v -> v.refreshInv(p.getPlayer()));
 		});
-		
+
 		ScoreboardManager.updateAll();
 	}
-	
+
 	public static void stop() {
 		Game.instance.close();
 		Game.instance = null;
 		Main.getInstance().updateTimer();
-		
+
 		ScoreboardManager.updateAll();
 	}
-	
+
 	public static void stop(boolean immediatly) {
 		if (immediatly) stop();
 		else Bukkit.getScheduler().runTaskLater(Main.getInstance(), () -> stop(), 20 * 5);
@@ -87,7 +87,7 @@ public class Game implements Listener, AutoCloseable {
 	private ArrayList<Team> teams = new ArrayList<>();
 	private ArrayList<Generator> diamondGens = new ArrayList<>();
 	private ArrayList<Generator> emeraldGens = new ArrayList<>();
-	
+
 	public List<Generator> getDiamondGenerators() {
 		return Collections.unmodifiableList(diamondGens);
 	}
@@ -99,15 +99,15 @@ public class Game implements Listener, AutoCloseable {
 		Team t = getTeam(player);
 		if (t != null) t.teamifyItem(item, colour, enchant);
 	}
-	
+
 	public void win(TeamColor color) {
 		getTeam(color).sendTitle("You won!", "", 0, 20 * 5, 0);
 		getTeam(color).sendTilteToOthers(color.getColorName() + " won!", "You lost :(", 0, 20 * 5, 0);
 		stop(false);
 	}
-	
+
 	public void breakBlock(Block block) {
-		SavedBlock bl = new SavedBlock(block.getLocation(), block.getState().getData(), block.getState().getType());
+		SavedBlock bl = new SavedBlock(block.getLocation(), block.getState().getBlockData(), block.getState().getType());
 		brokenBlocks.add(bl);
 		block.setType(Material.AIR, false);
 	}
@@ -117,7 +117,7 @@ public class Game implements Listener, AutoCloseable {
 	public void registerPlacedBlock(Location block) {
 		placedBlocks.push(block);
 	}
-	
+
 	public boolean allowPlace(Location loc) {
 		for (Generator gen : Generator.getGenerators()) {
 			if (gen.getLocation().distance(loc) < 5) return false;
@@ -126,9 +126,9 @@ public class Game implements Listener, AutoCloseable {
 	}
 	public boolean allowBreak(Location loc) {
 		if (!isStarted()) return true;
-		return placedBlocks.contains(loc) || loc.getWorld().getBlockAt(loc).getType() == Material.BED_BLOCK;
+		return placedBlocks.contains(loc) || Utility.isBed(loc.getWorld().getBlockAt(loc));
 	}
-	
+
 	public ArrayList<Team> getTeams() {
 		return teams;
 	}
@@ -149,21 +149,21 @@ public class Game implements Listener, AutoCloseable {
 			.findFirst()
 			.orElse(null);
 	}
-	public ArrayList<BedwarsPlayer> getPlayers() { 
+	public ArrayList<BedwarsPlayer> getPlayers() {
 		ArrayList<BedwarsPlayer> res = new ArrayList<>();
-		
+
 		for (Team team : teams) {
 			res.addAll(team.getPlayers());
 		}
-		
+
 		return res;
 	}
-	public BedwarsPlayer getPlayer(OfflinePlayer player) { 
+	public BedwarsPlayer getPlayer(OfflinePlayer player) {
 		Optional<BedwarsPlayer> _p = getPlayers()
 				.stream()
 				.filter(v -> v.getPlayer().getUniqueId().equals(player.getUniqueId()))
 				.findFirst();
-		
+
 		if (_p.isPresent()) return _p.get();
 		else return null;
 	}
@@ -172,7 +172,6 @@ public class Game implements Listener, AutoCloseable {
 		return getPlayer(p) != null;
 	}
 
-	@SuppressWarnings("deprecation")
 	public void close() {
 		for (Team team : teams) {
 			team.close();
@@ -185,7 +184,7 @@ public class Game implements Listener, AutoCloseable {
 					e.remove();
 			}
 		}
-		
+
 		for (Generator gen: diamondGens) {
 			gen.close();
 			gen.getLabel().close();
@@ -194,25 +193,25 @@ public class Game implements Listener, AutoCloseable {
 			gen.close();
 			gen.getLabel().close();
 		}
-		
+
 		RankedDealType.resetPlayerTiers();
-		
+
 		HandlerList.unregisterAll(this);
-		
+
 		for (Location placedBlock : placedBlocks) {
 			placedBlock.getBlock().setType(Material.AIR);
 		}
 		for (SavedBlock brokenBlock : brokenBlocks) {
 			brokenBlock.loc.getBlock().setType(brokenBlock.type, false);
-			brokenBlock.loc.getBlock().setData(brokenBlock.meta.getData(), false);
+			brokenBlock.loc.getBlock().setBlockData(brokenBlock.meta, false);
 		}
-		
+
 		placedBlocks.clear();
 		brokenBlocks.clear();
-		
+
 		teams = null;
 	}
-	
+
 	@EventHandler
 	private void onLogout(PlayerQuitEvent e) {
 		if (isPlaying(e.getPlayer())) {
@@ -230,7 +229,7 @@ public class Game implements Listener, AutoCloseable {
 			e.setJoinMessage(e.getPlayer().getName() + " reconnected.");
 	}
 	@EventHandler
-	private void onInventoryClick(InventoryClickEvent e) {		
+	private void onInventoryClick(InventoryClickEvent e) {
 		if (isStarted() && isPlaying((Player)e.getWhoClicked())) {
 			if (e.getClickedInventory() instanceof CraftingInventory) e.setCancelled(true);
 		}
@@ -240,9 +239,9 @@ public class Game implements Listener, AutoCloseable {
 		e.setCancelled(true);
 	}
 
-	
+
 	private static boolean isExceptional(Material mat) {
-		return mat == Material.LONG_GRASS || mat == Material.YELLOW_FLOWER || mat == Material.RED_ROSE;
+		return !mat.isSolid();
 	}
 
 	@EventHandler
@@ -251,7 +250,7 @@ public class Game implements Listener, AutoCloseable {
 			b.getDrops().forEach(v -> b.getWorld().dropItemNaturally(b.getLocation().add(0.5, 0.5, 0.5), v));
 			breakBlock(b);
 		}
-		else if (b.getType() == Material.BED_BLOCK) {
+		else if (Utility.isBed(b)) {
 			return false;
 		}
 		else if (allowBreak(b.getLocation())) {
@@ -261,7 +260,7 @@ public class Game implements Listener, AutoCloseable {
 		else {
 			return false;
 		}
-		
+
 		return true;
 	}
 	@EventHandler
@@ -272,9 +271,9 @@ public class Game implements Listener, AutoCloseable {
 	@SuppressWarnings("incomplete-switch")
 	@EventHandler
 	private void onBlockPlace(PlayerBucketEmptyEvent e) {
-		
+
 		Location loc = e.getBlockClicked().getLocation();
-		
+
 		switch (e.getBlockFace()) {
 		case UP:
 			loc.add(0, 1, 0);
@@ -295,12 +294,12 @@ public class Game implements Listener, AutoCloseable {
 			loc.add(0, 0, 1);
 			break;
 		}
-		
+
 		if (!allowPlace(loc)) {
 			e.setCancelled(true);
 			return;
 		}
-		
+
 		if (loc.getBlock().getType() != Material.AIR) {
 			if (!allowBreak(loc)) e.setCancelled(true);
 		}
@@ -311,20 +310,13 @@ public class Game implements Listener, AutoCloseable {
 	private void onBlockPlace(BlockPlaceEvent e) {
 		if (e.getBlock().getType() == Material.TNT) {
 			e.setCancelled(true);
-			ItemStack i = e.getPlayer().getItemInHand();
-			if (i.getAmount() == 0) e.getPlayer().setItemInHand(null);
-			else {
-				i.setAmount(i.getAmount() - 1);
-				e.getPlayer().setItemInHand(i);
-			}
+			Utility.takeOne(e.getPlayer(), e.getHand());
 			e.getBlock().getWorld().spawnEntity(e.getBlock().getLocation().add(.5, 0, .5), EntityType.PRIMED_TNT).setVelocity(new Vector(0, 0, 0));
 		}
 		else {
 			switch (e.getBlockReplacedState().getType()) {
 				case WATER:
-				case STATIONARY_WATER:
 				case LAVA:
-				case STATIONARY_LAVA:
 					if (!allowBreak(e.getBlock().getLocation())) e.setCancelled(true);
 					return;
 				case AIR:
@@ -334,10 +326,10 @@ public class Game implements Listener, AutoCloseable {
 					}
 					break;
 				case GRASS:
-				case LONG_GRASS:
+				case TALL_GRASS:
 					break;
 			}
-	
+
 			if (!e.isCancelled()) {
 				registerPlacedBlock(e.getBlock().getLocation());
 			}
@@ -355,31 +347,26 @@ public class Game implements Listener, AutoCloseable {
 				onBlockBreak(b);
 			}
 		}
-		
+
 		for (Player p : Bukkit.getOnlinePlayers()) {
-			p.playSound(e.getLocation(), Sound.EXPLODE, 1, 1);
+			p.playSound(e.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
 		}
 	}
 	@EventHandler
 	private void onUse(PlayerInteractEvent e) {
 		if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
 			if (e.getItem() == null) return;
-			if (e.getItem().getType() == Material.FIREBALL) {
-			
-				ItemStack i = e.getPlayer().getItemInHand();
-				if (i.getAmount() == 0) e.getPlayer().setItemInHand(null);
-				else {
-					i.setAmount(i.getAmount() - 1);
-					e.getPlayer().setItemInHand(i);
-				}
-				
+			if (e.getItem().getType() == Material.FIRE_CHARGE) {
+
+				Utility.takeOne(e.getPlayer(), e.getHand());
+
 				Location loc = e.getPlayer().getEyeLocation();
-				
+
 				Fireball fireball = (Fireball)e.getPlayer().getWorld().spawnEntity(
 					loc.add(loc.getDirection().multiply(.5)),
 					EntityType.FIREBALL
 				);
-				
+
 				fireball.getLocation().add(fireball.getDirection().multiply(10));
 				fireball.setShooter(e.getPlayer());
 				fireball.setYield(3);
@@ -387,12 +374,12 @@ public class Game implements Listener, AutoCloseable {
 			}
 		}
 	}
-	
+
 	public Game(ArrayList<TeamColor> colors, int perTeam, ArrayList<OfflinePlayer> players) {
 		Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
 		int spectatorsCount = players.size() - perTeam * colors.size();
 		ArrayList<OfflinePlayer> spectators = new ArrayList<OfflinePlayer>();
-		
+
 		if (spectatorsCount > 0) {
 			for (int i = 0; i < spectatorsCount; i++) {
 				OfflinePlayer removed = players.remove((int)(Math.random() * players.size()));
@@ -405,46 +392,46 @@ public class Game implements Listener, AutoCloseable {
 			}
 		}
 
-		this.teams = new ArrayList<>();	
-		
+		this.teams = new ArrayList<>();
+
 		if (colors.size() != 0) {
 			int colorI = 0;
-			
+
 			for (TeamColor color : colors) {
 				this.teams.add(new Team(color));
 			}
-			
+
 			while (!players.isEmpty()) {
 				Team currTeam = this.teams.get(colorI);
 				OfflinePlayer p;
-				
+
 				currTeam.addPlayer(p = players.remove((int)(Math.random() * players.size())));
-				
+
 				if (p.isOnline()) {
 					// onlineCount++;
 				}
-				
+
 				if (currTeam.getPlayersCount() == perTeam) {
 					colorI++;
 				}
 			}
 		}
-		
+
 		// TODO: Make times configurable
 		for (Location loc : Config.instance.getDiamondGenerators()) {
 			GeneratorLabel label = new GeneratorLabel("§cDiamond Generator", loc.clone().add(0, 1, 0));
 			Generator gen = new Generator(loc, 4, label);
 			gen.addItem(Material.DIAMOND, 600);
-			
+
 			diamondGens.add(gen);
 		}
 		for (Location loc : Config.instance.getEmeraldGenerators()) {
 			GeneratorLabel label = new GeneratorLabel("§cEmerald Generator", loc.clone().add(0, 1, 0));
 			Generator gen = new Generator(loc, 2, label);
 			gen.addItem(Material.EMERALD, 1200);
-			
+
 			emeraldGens.add(gen);
 		}
 	}
-	
+
 }

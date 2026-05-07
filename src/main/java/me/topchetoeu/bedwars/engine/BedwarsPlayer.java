@@ -1,20 +1,24 @@
-	package me.topchetoeu.bedwars.engine;
+package me.topchetoeu.bedwars.engine;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import com.mojang.datafixers.util.Pair;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Sound;
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_8_R3.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftItemStack;
 
 import me.topchetoeu.bedwars.Utility;
 import me.topchetoeu.bedwars.engine.trader.dealTypes.RankedDealType;
-import net.minecraft.server.v1_8_R3.EntityPlayer;
-import net.minecraft.server.v1_8_R3.PacketPlayOutEntityEquipment;
+import net.minecraft.network.protocol.game.PacketPlayOutEntityEquipment;
+import net.minecraft.world.entity.EnumItemSlot;
 
 import org.bukkit.entity.Explosive;
 import org.bukkit.entity.Fireball;
@@ -32,7 +36,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
@@ -58,38 +62,40 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 	private BukkitTask offenceTask = null;
 	private BukkitTask invisTask = null;
 	private BukkitTask reviveTask = null;
-	
+
 	private int kills;
 	private int finalKills;
 	private int beds;
 	private int deaths;
-	private boolean invisible = false;	
-	
+	private boolean invisible = false;
+
 	private OfflinePlayer offender = null;
-	
+
 	private void updateInvisibility(Player p) {
-		net.minecraft.server.v1_8_R3.ItemStack helmetItem = CraftItemStack.asNMSCopy(getOnlinePlayer().getInventory().getHelmet());
-		net.minecraft.server.v1_8_R3.ItemStack chestplateItem = CraftItemStack.asNMSCopy(getOnlinePlayer().getInventory().getChestplate());
-		net.minecraft.server.v1_8_R3.ItemStack leggingsItem = CraftItemStack.asNMSCopy(getOnlinePlayer().getInventory().getLeggings());
-		net.minecraft.server.v1_8_R3.ItemStack bootsItem = CraftItemStack.asNMSCopy(getOnlinePlayer().getInventory().getBoots());
+		net.minecraft.world.item.ItemStack helmetItem = CraftItemStack.asNMSCopy(getOnlinePlayer().getInventory().getHelmet());
+		net.minecraft.world.item.ItemStack chestplateItem = CraftItemStack.asNMSCopy(getOnlinePlayer().getInventory().getChestplate());
+		net.minecraft.world.item.ItemStack leggingsItem = CraftItemStack.asNMSCopy(getOnlinePlayer().getInventory().getLeggings());
+		net.minecraft.world.item.ItemStack bootsItem = CraftItemStack.asNMSCopy(getOnlinePlayer().getInventory().getBoots());
+
 		if (invisible) {
 			helmetItem = chestplateItem = leggingsItem = bootsItem = null;
 		}
 
+
+		List<Pair<EnumItemSlot, net.minecraft.world.item.ItemStack>> items = new ArrayList<>();
+
+		items.add(new Pair<EnumItemSlot,net.minecraft.world.item.ItemStack>(EnumItemSlot.c, helmetItem));
+		items.add(new Pair<EnumItemSlot,net.minecraft.world.item.ItemStack>(EnumItemSlot.d, chestplateItem));
+		items.add(new Pair<EnumItemSlot,net.minecraft.world.item.ItemStack>(EnumItemSlot.e, leggingsItem));
+		items.add(new Pair<EnumItemSlot,net.minecraft.world.item.ItemStack>(EnumItemSlot.f, bootsItem));
+
 		int id = getOnlinePlayer().getEntityId();
-		PacketPlayOutEntityEquipment helmet = new PacketPlayOutEntityEquipment(id, 1, helmetItem);
-		PacketPlayOutEntityEquipment chestplate = new PacketPlayOutEntityEquipment(id, 2, chestplateItem);
-		PacketPlayOutEntityEquipment leggings = new PacketPlayOutEntityEquipment(id, 3, leggingsItem);
-		PacketPlayOutEntityEquipment boots = new PacketPlayOutEntityEquipment(id, 4, bootsItem);
-		
-		EntityPlayer handle = ((CraftPlayer)p).getHandle();
-		
-		handle.playerConnection.sendPacket(helmet);
-		handle.playerConnection.sendPacket(chestplate);
-		handle.playerConnection.sendPacket(leggings);
-		handle.playerConnection.sendPacket(boots);
+
+		PacketPlayOutEntityEquipment packet = new PacketPlayOutEntityEquipment(id, items);
+
+		((CraftPlayer)p).getHandle().b.a(packet);
 	}
-	
+
 	private void updateInvisiblity() {
 		for (Player player : Bukkit.getOnlinePlayers()) {
 			if (Game.inGame(player) && !team.hasPlayer(player)) {
@@ -106,7 +112,7 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 			invisTask = null;
 		}
 	}
-	
+
 	public OfflinePlayer getPlayer() {
 		return player;
 	}
@@ -117,7 +123,7 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 	public Team getTeam() {
 		return team;
 	}
-	
+
 	public boolean isDead() {
 		return dead;
 	}
@@ -127,7 +133,7 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 	public boolean isOnline() {
 		return player.isOnline();
 	}
-	
+
 	public int getRegularKills() {
 		return kills;
 	}
@@ -143,8 +149,8 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 	public int getDeaths() {
 		return deaths;
 	}
-	
-	
+
+
 	public float getRevivalTimer() {
 		return revivalTimer;
 	}
@@ -163,9 +169,9 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 				bwOffender = Game.instance.getPlayer(offender);
 				if (offender.isOnline()) {
 					Player p = offender.getPlayer();
-					
+
 					ItemStack[] inv = p.getInventory().getContents();
-		
+
 					getOnlinePlayer().getInventory().forEach(i -> {
 						if (i != null) {
 							if (i.getType() == Material.IRON_INGOT ||
@@ -176,17 +182,17 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 							}
 						}
 					});
-					
+
 					p.getInventory().setContents(inv);
 					p.updateInventory();
 				}
 			}
-			
+
 			for(PotionEffect effect : getOnlinePlayer().getActivePotionEffects())
 			{
 				getOnlinePlayer().removePotionEffect(effect.getType());
 			}
-			
+
 			if (team.hasBed()) {
 				dead = true;
 				removeInvis();
@@ -195,9 +201,9 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 				RankedDealType.getDefinedRanks().values().forEach((v) -> {
 					v.onDeath(getOnlinePlayer());
 				});
-					
+
 				revivalTimer = 5;
-				
+
 				reviveTask = Bukkit.getScheduler().runTaskTimer(Main.getInstance(), () -> {
 					if (!player.isOnline()) {
 						dead = false;
@@ -216,9 +222,9 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 						revive();
 					}
 				}, 0, 2);
-				
+
 				offender = null;
-				
+
 				if (bwOffender != null) bwOffender.kills++;
 			}
 			else {
@@ -231,7 +237,7 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 	}
 	public void revive() {
 		if (!dead) return;
-		
+
 		dead = false;
 		spectator = false;
 		if (reviveTask != null) {
@@ -248,7 +254,7 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 			RankedDealType.getDefinedRanks().values().forEach((v) -> {
 				v.refreshInv(getOnlinePlayer());
 			});
-			
+
 			RankedDealType.refreshPlayer(getOnlinePlayer());
 		}
 		else revivalPending = true;
@@ -263,7 +269,7 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 			dead = true;
 		}
 		Bukkit.getServer().broadcastMessage(String.format("%s was eliminated.", player.getName()));
-		
+
 		if (team.decreaseRemainingPlayers() > 0) {
 			// TODO fix these messages
 			// Also, this deprecation is just fine :)
@@ -276,7 +282,7 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 			}
 			else
 				player.getPlayer().sendTitle("Your team was eliminated", "Your team fucked up bad time :(");
-	
+
 		spectator = true;
 	}
 	public void close() {
@@ -285,7 +291,7 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 		}
 
 		offenceTask.cancel();
-		
+
 		if (isOnline()) {
 			for(PotionEffect effect : getOnlinePlayer().getActivePotionEffects()) {
 				getOnlinePlayer().removePotionEffect(effect.getType());
@@ -293,17 +299,17 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 			getOnlinePlayer().setGameMode(GameMode.SPECTATOR);
 			getOnlinePlayer().getInventory().clear();
 			getOnlinePlayer().getEnderChest().clear();
-		}		
-		
+		}
+
 		HandlerList.unregisterAll(this);
-		
+
 		offenceTask = null;
 		reviveTask = null;
 		team = null;
 		player = null;
 		deathMessages = null;
 	}
-	
+
 	@EventHandler
 	private void onLogout(PlayerQuitEvent e) {
 		if (equals(e.getPlayer())) {
@@ -330,7 +336,7 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 				ScoreboardManager.update(e.getPlayer());
 			}, 3);
 		}
-		
+
 		updateInvisiblity();
 	}
 	@EventHandler
@@ -356,7 +362,7 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 						kill(DeathMessage.getMessage(e.getCause(), player, offender, deathMessages));
 					}
 				}
-				
+
 				if (offender != null) offenceTimer = 15;
 			}
 		}
@@ -379,24 +385,24 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 	@EventHandler
 	private void onTeleport(PlayerTeleportEvent e) {
 		Player player = e.getPlayer();
-		 
+
         if (e.getCause() == TeleportCause.ENDER_PEARL) {
             e.setCancelled(true);
- 
+
             player.teleport(e.getTo());
         }
 	}
 	private void onInvisExpire() {
 		removeInvis();
 	}
-	
+
 	@EventHandler
 	private void onMove(PlayerMoveEvent e) {
 		if (e.getPlayer() instanceof Player) {
 			if (e.getPlayer().getUniqueId().equals(player.getUniqueId())) {
 				if (e.getTo().getY() < 40) {
 					e.setTo(e.getTo().add(0, 100, 0));
-					e.getPlayer().playSound(e.getTo(), Sound.HURT_FLESH, 1, 1);
+					e.getPlayer().playSound(e.getTo(), Sound.ENTITY_PLAYER_HURT, 1, 1);
 					kill(DeathMessage.getMessage(DamageCause.VOID, player, offender, deathMessages));
 				}
 			}
@@ -405,14 +411,17 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 	@EventHandler
 	private void onThrow(PlayerDropItemEvent e) {
 		if (equals(e.getPlayer())) {
-	 		if (e.getItemDrop().getItemStack().getType() == Material.WOOD_SWORD) e.setCancelled(true);
+	 		if (e.getItemDrop().getItemStack().getType() == Material.WOODEN_SWORD) e.setCancelled(true);
 	 		else WoodenSword.update(this, e.getPlayer().getInventory());
 		}
 	}
 	@EventHandler
-	private void onPickup(PlayerPickupItemEvent e) {
-		if (WoodenSword.isOtherSword(e.getItem().getItemStack().getType()))
-			e.getPlayer().getInventory().remove(Material.WOOD_SWORD);
+	private void onPickup(EntityPickupItemEvent e) {
+		if (e.getEntity() instanceof Player) {
+			Player p = (Player)e.getEntity();
+			if (WoodenSword.isOtherSword(e.getItem().getItemStack().getType()))
+				p.getInventory().remove(Material.WOODEN_SWORD);
+		}
 	}
 	@EventHandler
 	private void onConsume(PlayerItemConsumeEvent e) {
@@ -420,16 +429,16 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 			if (e.getPlayer().getUniqueId().equals(player.getUniqueId())) {
 				if (e.getItem().getItemMeta() instanceof PotionMeta) {
 					PotionMeta meta = (PotionMeta)e.getItem().getItemMeta();
-					
+
 					meta.getCustomEffects().forEach(eff -> {
 						Utility.applyPotionEffect(getOnlinePlayer(), eff);
-				
+
 						if (eff.getType().equals(PotionEffectType.INVISIBILITY)) {
-	
+
 							if (invisible) {
 								invisTask.cancel();
 							}
-							
+
 							invisTask = Bukkit.getScheduler().runTaskLater(Main.getInstance(),
 								() -> onInvisExpire(),
 								eff.getDuration()
@@ -438,8 +447,8 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 							updateInvisiblity();
 						}
 					});
-					
-					e.getPlayer().getInventory().setItemInHand(null);
+
+					e.getItem().setType(Material.AIR);
 					e.setCancelled(true);
 				}
 			}
@@ -448,18 +457,18 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 
 	@EventHandler
 	private void onInventory(InventoryClickEvent e) {
-		if (e.getCursor() != null && e.getCursor().getType() == Material.WOOD_SWORD) {
+		if (e.getCursor() != null && e.getCursor().getType() == Material.WOODEN_SWORD) {
 			if (e.getClickedInventory() != e.getWhoClicked().getInventory()) e.setCancelled(true);
 		}
-		else if (e.getCurrentItem() != null && e.getCurrentItem().getType() == Material.WOOD_SWORD) {
+		else if (e.getCurrentItem() != null && e.getCurrentItem().getType() == Material.WOODEN_SWORD) {
 			if (e.getClick() == ClickType.SHIFT_LEFT || e.getClick() == ClickType.SHIFT_RIGHT) e.setCancelled(true);
 		}
 	}
-	
+
 	public OfflinePlayer getOffender() {
 		return offender;
 	}
-	
+
 	public BedwarsPlayer(OfflinePlayer p, Team t) {
 		Bukkit.getPluginManager().registerEvents(this, Main.getInstance());
 		team = t;
@@ -471,7 +480,7 @@ public class BedwarsPlayer implements Listener, AutoCloseable {
 				if (offenceTimer == 0) offender = null;
 			}
 		}, 0, 20);
-		
+
 		if (p.isOnline()) {
 			dead = true;
 			revive();

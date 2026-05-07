@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.logging.Level;
 
@@ -11,7 +12,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftEntity;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
@@ -46,22 +46,22 @@ import me.topchetoeu.bedwars.engine.trader.upgrades.SharpnessTeamUpgrade;
 // TODO add permissions
 
 public class Main extends JavaPlugin implements Listener {
-	
-	
+
+
 	private static Main instance;
 	private int playerCount;
 	public static Main getInstance() {
 		return instance;
 	}
-	
+
 	private File confFile = new File(getDataFolder(), "config.yml");
 	private int getGameSize() {
 		return Config.instance.getTeamSize() * Config.instance.getColors().size();
 	}
-	
+
 	int timer = 0;
 	BukkitTask timerTask = null;
-	
+
 	private void stopTimer() {
 		if (timerTask == null) return;
 		Utility.broadcastTitle("Not enough players!", null, 10, 40, 5);
@@ -70,7 +70,7 @@ public class Main extends JavaPlugin implements Listener {
 	}
 	private void startTimer() {
 		if (timerTask != null) return;
-		
+
 		timerTask = Bukkit.getScheduler().runTaskTimer(this, () -> {
 			if (Game.isStarted()) {
 				stopTimer();
@@ -109,7 +109,7 @@ public class Main extends JavaPlugin implements Listener {
 			}
 		}
 	}
-	
+
 	@EventHandler
 	private void onJoin(PlayerJoinEvent e) {
 		playerCount++;
@@ -121,13 +121,12 @@ public class Main extends JavaPlugin implements Listener {
 		playerCount--;
 		updateTimer();
 	}
-	
+
 	@EventHandler
 	private void onFoodLost(FoodLevelChangeEvent e) {
 		e.setCancelled(true);
 	}
-	
-	@SuppressWarnings("deprecation")
+
 	@Override
 	public void onEnable() {
 		playerCount = Bukkit.getServer().getOnlinePlayers().size();
@@ -138,41 +137,43 @@ public class Main extends JavaPlugin implements Listener {
 			if (!conf.exists())
 				try {
 					YamlConfiguration.loadConfiguration(
+						new InputStreamReader(
 							getClass()
 							.getClassLoader()
 							.getResourceAsStream("config.yml")
+						)
 					).save(confFile);
 				}
 				catch (IOException e) { /* Everything is fine */ }
-			
+
 			// Deprecation warnings are for beginners
 			Config.load(conf);
 			File defaultFavs = new File(getDataFolder(), "default-favourites.yml");
-	
+
 			if (!defaultFavs.exists()) {
 				try {
 					OutputStream w = new FileOutputStream(defaultFavs);
 					InputStream r =  getClass()
 						.getClassLoader()
 						.getResourceAsStream("default-favourites.yml");
-					
+
 					w.write(r.readAllBytes());
-					
+
 					w.close();
 					r.close();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
-			
+
 			File favsDir = new File(getDataFolder(), "favourites");
-	
+
 			try {
 				Traders.instance = new Traders(new File(getDataFolder(), "traders.txt"));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
+
 			YamlConfiguration sectionsConf = YamlConfiguration.loadConfiguration(new File(getDataFolder(), "sections.yml"));
 
 			BlindnessTeamUpgrade.init(this);
@@ -182,21 +183,20 @@ public class Main extends JavaPlugin implements Listener {
 			ProtectionTeamUpgrade.init();
 			SharpnessTeamUpgrade.init();
 			TeamUpgradeRanks.init(this, sectionsConf);
-			
+
 			ItemDealType.init();
 			RankedDealType.init(this, sectionsConf);
 			EnforcedRankedDealType.init();
 			RankedUpgradeDealType.init();
 			Sections.init(new File(getDataFolder(), "sections.yml"));
 			Favourites.instance = new Favourites(favsDir, defaultFavs);
-			
+
 			updateTimer();
-			
+
 			getServer().getWorlds().get(0).getEntitiesByClass(Villager.class).forEach(v -> {
-				net.minecraft.server.v1_8_R3.Entity nmsEntity = ((CraftEntity) v).getHandle();
-			    nmsEntity.b(true); // Disables its AI
+				v.setAI(false);
 			});
-			
+
 			Command cmd = new Command("bedwars", "bw").setExecutor(Commands._default);
 			cmd
 				.attachCommand(new Command("help")
@@ -233,8 +233,8 @@ public class Main extends JavaPlugin implements Listener {
 						if (args.length == 0) {
 							if (sender instanceof Player) {
 								Player p = (Player)sender;
-								
-								p.getInventory().addItem(Utility.namedItem(new ItemStack(Material.MONSTER_EGG), "§rTrader spawner"));
+
+								p.getInventory().addItem(Utility.namedItem(new ItemStack(Material.VILLAGER_SPAWN_EGG), "§rTrader spawner"));
 								p.getInventory().addItem(Utility.namedItem(new ItemStack(Material.STICK), "§rTrader eradicator"));
 							}
 						}
@@ -301,7 +301,7 @@ public class Main extends JavaPlugin implements Listener {
 					})
 				)
 				.register(this);
-			
+
 			getServer().getPluginManager().registerEvents(this, this);
 		}
 		catch (Throwable t) {

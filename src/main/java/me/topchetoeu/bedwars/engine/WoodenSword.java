@@ -19,8 +19,8 @@ public class WoodenSword {
 	}
 	public static void update(BedwarsPlayer p, Inventory inv) {
 		if (hasOtherSword(inv))
-			inv.remove(Material.WOOD_SWORD);
-		else if (!inv.contains(Material.WOOD_SWORD))
-			inv.addItem(p.getTeam().teamifyItem(new ItemStack(Material.WOOD_SWORD, 1), true, true));
+			inv.remove(Material.WOODEN_SWORD);
+		else if (!inv.contains(Material.WOODEN_SWORD))
+			inv.addItem(p.getTeam().teamifyItem(new ItemStack(Material.WOODEN_SWORD, 1), true, true));
 	}
 }
