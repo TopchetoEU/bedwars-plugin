@@ -8,3 +8,48 @@ commands:
   bedwars:
     description: A command used to control the bedwars plugin
     aliases: [ bw, bedwar ]
+permissions:
+  bedwars:
+    description: Gives access to all bedwars-related commands
+    children:
+      bedwars.config: yes
+      bedwars.cheat: yes
+      bedwars.control: yes
+      bedwars.villagertools: yes
+  bedwars.config:
+    description: Gives access to all bedwars configuration commands
+    children:
+      bedwars.config.bases: yes
+      bedwars.config.generators: yes
+  bedwars.config.bases:
+    description: Gives access to all base-related commands
+    children:
+      bedwars.config.bases.add: yes
+      bedwars.config.bases.remove: yes
+      bedwars.config.bases.setspawn: yes
+      bedwars.config.bases.setgenerator: yes
+      bedwars.config.bases.setbed: yes
+  bedwars.config.bases.add:
+    description: Gives access to base add command
+  bedwars.config.bases.remove:
+    description: Gives access to base remove command
+  bedwars.config.bases.setspawn:
+    description: Gives access to base set spawn command
+  bedwars.config.bases.setgenerator:
+    description: Gives access to base set generator command
+  bedwars.config.bases.setbed:
+    description: Gives access to base set bed command
+  bedwars.cheat:
+    description: Gives access to all features that allow cheating (like killing, eliminating or breaking other's beds)
+    children:
+      bedwars.cheat.kill: yes
+      bedwars.cheat.revive: yes
+      bedwars.cheat.breakbed: yes
+  bedwars.cheat.kill:
+    description: Gives access to the command /bw kill [player]
+  bedwars.cheat.revive:
+    description: Gives access to the command /bw revive [player]
+  bedwars.cheat.breakbed:
+    description: Gives access to the command /bw breakbed [team]
+  bedwars.villagertools:
+    description: Gives access to the command /bw villagertools

@@ -1,4 +1,4 @@
-package me.topchetoeu.bedwars.commandUtility.args;
+package me.topchetoeu.bedwars.commands.args;
 
 import java.util.List;
 

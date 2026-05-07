@@ -1,10 +1,9 @@
-package me.topchetoeu.bedwars.commandUtility;
+package me.topchetoeu.bedwars.commands;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
-import me.topchetoeu.bedwars.commandUtility.args.LiteralArgParser;
+import me.topchetoeu.bedwars.commands.args.LiteralArgParser;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 
 public class CommandExecutors {

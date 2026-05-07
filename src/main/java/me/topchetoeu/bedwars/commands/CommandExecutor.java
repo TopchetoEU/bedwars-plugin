@@ -1,4 +1,4 @@
-package me.topchetoeu.bedwars.commandUtility;
+package me.topchetoeu.bedwars.commands;
 
 import java.util.Map;
 
