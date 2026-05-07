@@ -54,9 +54,14 @@
     </dependency>
     <dependency>
       <groupId>com.mojang</groupId>
-      <artifactId>brigadier</artifactId>  
-      <version>1.0.18</version> 
+      <artifactId>brigadier</artifactId>
+      <version>1.0.18</version>
     </dependency>
+    <dependency>
+      <groupId>com.mojang</groupId>
+      <artifactId>datafixerupper</artifactId>
+      <version>1.0.20</version>
+  </dependency>
   </dependencies>
 
   <build>
