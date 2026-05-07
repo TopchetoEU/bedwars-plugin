@@ -7,10 +7,12 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 
 import me.topchetoeu.bedwars.Utility;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
 
 public class GeneratorLabel {
     private HoverLabel label;
-    private String firstLine;    
+    private BaseComponent[] firstLine;    
     
     private Hashtable<Material, Float> remainingTimes = new Hashtable<>();
     
@@ -27,20 +29,20 @@ public class GeneratorLabel {
     }
     
     public void update() {
-        ArrayList<String> lines = new ArrayList<>();
+        ArrayList<BaseComponent[]> lines = new ArrayList<>();
         
         lines.add(firstLine);    
         lines.add(null);
         
         for (Material item : remainingTimes.keySet()) {
-            lines.add(String.format("%s in %.2f seconds", Utility.getItemName(item), remainingTimes.get(item)));
+            lines.add(new ComponentBuilder().append(Utility.getItemName(item)).append(" in %.2f seconds".formatted(remainingTimes.get(item))).create());
         }
         
         label.setData(lines);
     }
     
-    public GeneratorLabel(String firstLine, Location loc) {
+    public GeneratorLabel(BaseComponent[] firstLine, Location loc) {
         this.firstLine = firstLine;
-        label = new HoverLabel(loc, new ArrayList<String>());
+        label = new HoverLabel(loc, new ArrayList<BaseComponent[]>());
     }
 }

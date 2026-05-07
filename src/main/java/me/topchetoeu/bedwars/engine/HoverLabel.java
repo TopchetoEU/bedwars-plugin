@@ -9,18 +9,20 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.EntityDamageEvent;
 
+import net.md_5.bungee.api.chat.BaseComponent;
+
 public class HoverLabel {
-    private List<String> data;
+    private List<BaseComponent[]> data;
     private List<ArmorStand> armorStands;
     private Location loc;
     
-    private ArmorStand generateArmorStand(Location loc, String name) {
+    private ArmorStand generateArmorStand(Location loc, BaseComponent[] name) {
         if (name == null || name.equals("")) return null;
         ArmorStand as = (ArmorStand)loc.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
         
         as.setGravity(false);
         as.setVisible(false);
-        as.setCustomName(name);
+        as.setCustomName(BaseComponent.toLegacyText(name));
         as.setCustomNameVisible(true);
         
         return as;
@@ -52,10 +54,10 @@ public class HoverLabel {
         return loc;
     }
     
-    private Location replaceData(List<String> data, int n) {
+    private Location replaceData(List<BaseComponent[]> data, int n) {
         Location loc = this.loc.clone();
         for (int i = 0; i < n; i++) {
-            String line = data.get(i);
+            BaseComponent[] line = data.get(i);
             
             if (line == null || line.equals("")) {
                 if (armorStands.get(i) != null) armorStands.get(i).remove();
@@ -63,7 +65,7 @@ public class HoverLabel {
             }
             else {
                 if (armorStands.get(i) == null) armorStands.set(i, generateArmorStand(loc, line));
-                else armorStands.get(i).setCustomName(line);
+                else armorStands.get(i).setCustomName(BaseComponent.toLegacyText(line));
             }
             loc.add(0, -0.25, 0);
         }
@@ -71,7 +73,7 @@ public class HoverLabel {
         return loc;
     }
     
-    public void setData(List<String> data) {
+    public void setData(List<BaseComponent[]> data) {
         if (data.size() > this.data.size()) {
             Location loc = replaceData(data, this.data.size());
             
@@ -94,13 +96,13 @@ public class HoverLabel {
         
         this.data = data;
     }
-    public List<String> getData() {
+    public List<BaseComponent[]> getData() {
         return data;
     }
     
-    public HoverLabel(Location loc, List<String> data) {
+    public HoverLabel(Location loc, List<BaseComponent[]> data) {
         this.loc = loc;
-        this.data = new ArrayList<String>();
+        this.data = new ArrayList<BaseComponent[]>();
         this.armorStands = new ArrayList<ArmorStand>();
         setData(data);
     }

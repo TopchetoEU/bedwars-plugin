@@ -11,6 +11,7 @@ import me.topchetoeu.bedwars.engine.Game;
 import me.topchetoeu.bedwars.engine.Team;
 import me.topchetoeu.bedwars.engine.trader.Deal;
 import me.topchetoeu.bedwars.engine.trader.upgrades.TeamUpgrade;
+import me.topchetoeu.bedwars.messaging.MessageUtility;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -42,7 +43,10 @@ public class RankedUpgradeDeal implements Deal {
         if (upgrade == null) return;
         upgrade.addToTeam(t);
         upgrade.updateTeam(t);
-        t.sendMessage(p.getName() + "§r purchased " + upgrade.getDisplayName() + "§r!");
+        MessageUtility.parser("team.upgrade-purchased")
+            .variable("player", p.getDisplayName())
+            .variable("upgrade", getDealName(p))
+            .send(t);
     }
 
     @Override
