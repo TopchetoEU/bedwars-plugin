@@ -1,0 +1,10 @@
+name: bedwars-plugin
+version: 0.7.0
+description: A plugin that enables you to make a bedwars game
+authors: [ TopchetoEU, SpaceHQ ]
+main: me.topchetoeu.bedwars.Main
+api-version: 1.18
+commands:
+  bedwars:
+    description: A command used to control the bedwars plugin
+    aliases: [ bw, bedwar ]

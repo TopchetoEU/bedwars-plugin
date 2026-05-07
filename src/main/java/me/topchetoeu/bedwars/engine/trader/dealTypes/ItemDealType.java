@@ -11,24 +11,24 @@ import me.topchetoeu.bedwars.engine.trader.DealType;
 import me.topchetoeu.bedwars.engine.trader.DealTypes;
 
 public class ItemDealType implements DealType {
-	
-	@SuppressWarnings("unchecked")
-	@Override
-	public Deal parse(Map<String, Object> map) {
-		boolean implemented = !map.containsKey("implemented") || (boolean)map.get("implemented");
-		int price = (Integer)map.get("price");
-		Material priceType = Material.getMaterial(((String)map.get("priceType")).toUpperCase());
-		ItemStack type = Utility.deserializeItemStack((Map<String, Object>)map.get("item"));
-		
-		return new ItemDeal(type, price, priceType, implemented);
-	}
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public Deal parse(Map<String, Object> map) {
+        boolean implemented = !map.containsKey("implemented") || (boolean)map.get("implemented");
+        int price = (Integer)map.get("price");
+        Material priceType = Material.getMaterial(((String)map.get("priceType")).toUpperCase());
+        ItemStack type = Utility.deserializeItemStack((Map<String, Object>)map.get("item"));
+        
+        return new ItemDeal(type, price, priceType, implemented);
+    }
 
-	@Override
-	public String getId() {
-		return "item";
-	}
-	
-	public static void init() {
-		DealTypes.register(new ItemDealType());
-	}
+    @Override
+    public String getId() {
+        return "item";
+    }
+    
+    public static void init() {
+        DealTypes.register(new ItemDealType());
+    }
 }
